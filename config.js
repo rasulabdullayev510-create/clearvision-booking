@@ -40,6 +40,11 @@ module.exports = {
     },
   ],
 
+  // --- Timezone ---
+  // IANA timezone string for appointment time calculations (review SMS fires 24h after appt)
+  // Examples: "America/Edmonton", "America/Vancouver", "America/Toronto", "America/New_York"
+  timezone: "America/Edmonton",
+
   // --- Review SMS delay ---
   // How many minutes after the appointment time to send the review SMS
   reviewDelayMinutes: 1440,  // 1440 = 24 hours (use 2 for testing)

@@ -33,6 +33,7 @@ const GOOGLE_REVIEW    = CONFIG.googleReviewLink;
 const SERVICES         = CONFIG.services;
 const HOURS            = CONFIG.hours;
 const REVIEW_DELAY_MIN = CONFIG.reviewDelayMinutes || 1440;
+const TIMEZONE         = CONFIG.timezone || "America/Edmonton";
 
 const twilioClient = TWILIO_ACCOUNT_SID ? twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN) : null;
 
@@ -354,6 +355,11 @@ app.post("/api/review", (req, res) => {
   res.json({ success: true, redirectToGoogle: Number(rating) >= 4 });
 });
 
+app.get("/api/feedback", (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  res.json(db.get("feedback").value().slice().reverse());
+});
+
 app.get("/api/review/:token", (req, res) => {
   const booking = db.get("bookings").find({ reviewToken: req.params.token }).value();
   const walkin  = !booking ? db.get("walkins").find({ reviewToken: req.params.token }).value() : null;
@@ -400,7 +406,7 @@ cron.schedule("* * * * *", async () => {
   // Confirmed bookings
   const pendingBookings = db.get("bookings").filter(b => {
     if (b.status !== "confirmed" || b.reviewSentAt) return false;
-    const apptTime = new Date(`${b.date}T${b.time}:00-06:00`);
+    const apptTime = new Date(new Date(`${b.date}T${b.time}:00`).toLocaleString("en-US", { timeZone: TIMEZONE }));
     return (now - apptTime) / (1000 * 60) >= REVIEW_DELAY_MIN;
   }).value();
 

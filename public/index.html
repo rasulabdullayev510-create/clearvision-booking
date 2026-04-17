@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Book a Service</title>
+<title id="booking-title">Book an Appointment</title>
+<meta name="description"        id="booking-desc"    content="Book your appointment online in 60 seconds. Pick a time, confirm by text."/>
+<meta name="robots"                                   content="index, follow"/>
+<meta property="og:type"                              content="website"/>
+<meta property="og:title"       id="booking-og-title" content="Book an Appointment"/>
+<meta property="og:description" id="booking-og-desc"  content="Book your appointment online in 60 seconds."/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -149,9 +154,17 @@ body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-
   .ps-label{display:none}
   .content{margin:24px auto;padding:0 16px 60px}
   .datetime-grid{grid-template-columns:1fr}
+  .slots-grid{grid-template-columns:repeat(2,1fr)}
   .form-grid{grid-template-columns:1fr}
   .form-full{grid-column:auto}
   .panel-title{font-size:1.6rem}
+  .field input,.field textarea,.field select{font-size:16px}
+  .btn-back{min-height:44px;padding:13px 22px}
+  .btn-prime{min-height:44px}
+  .topbar-back{min-height:44px;padding:10px 16px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
 }
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--primary-mid);border-radius:4px}
 </style>
@@ -281,7 +294,12 @@ let calMo = new Date(); calMo.setDate(1);
 
 fetch(API + '/api/info').then(r=>r.json()).then(d=>{
   document.getElementById('topbar-name').textContent = d.businessName || '';
-  document.title = 'Book — ' + (d.businessName || '');
+  var t = 'Book an Appointment' + (d.businessName ? ' — ' + d.businessName : '');
+  document.title = t;
+  document.getElementById('booking-title').textContent = t;
+  document.getElementById('booking-desc').setAttribute('content', 'Book your appointment with ' + (d.businessName || 'us') + ' online in 60 seconds. Pick a time, get confirmed by text.');
+  document.getElementById('booking-og-title').setAttribute('content', t);
+  document.getElementById('booking-og-desc').setAttribute('content', 'Book your appointment with ' + (d.businessName || 'us') + ' online in 60 seconds.');
 }).catch(()=>{});
 
 async function loadServices() {
