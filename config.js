@@ -5,38 +5,69 @@
 module.exports = {
 
   // --- Business info ---
-  businessName:     "Business Name",
-  bookingPageUrl:   "https://YOUR-APP.up.railway.app",   // used in rebook SMS links
-  googleReviewLink: "https://g.page/your-business",      // 4-5 star review redirect
+  businessName:     "Prestige Barbershop",
+  bookingPageUrl:   "https://template-booking.onrender.com",
+  googleReviewLink: "https://g.page/prestige-barbershop-calgary",
 
   // --- Operating hours ---
   // startHour / endHour are 24h format integers (9 = 9am, 17 = 5pm)
   // closedDays: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
   hours: {
-    default:     { startHour: 9,  endHour: 17 },  // Mon–Thu
-    friday:      { startHour: 9,  endHour: 17 },  // Friday
-    weekend:     { startHour: 10, endHour: 16 },  // Sat & Sun
-    closedDays:  [],                               // e.g. [0] to close Sundays
+    default:     { startHour: 9,  endHour: 19 },  // Mon–Fri
+    friday:      { startHour: 9,  endHour: 19 },  // Friday
+    weekend:     { startHour: 9,  endHour: 18 },  // Sat, Sun 11–4
+    closedDays:  [],
   },
 
   // --- Services shown on booking page ---
-  // category is used as the badge label on each service card
   services: [
     {
-      id:          "service-1",
-      name:        "Service One",
-      description: "What this service includes and who it helps.",
-      duration:    60,      // minutes
-      price:       50,      // dollars
-      category:   "main",
+      id:          "haircut",
+      name:        "Haircut",
+      description: "Classic or modern cut with hot towel finish and style.",
+      duration:    30,
+      price:       35,
+      category:   "cut",
     },
     {
-      id:          "service-2",
-      name:        "Service Two",
-      description: "What this service includes and who it helps.",
-      duration:    30,
-      price:       30,
-      category:   "main",
+      id:          "skin-fade",
+      name:        "Skin Fade",
+      description: "Zero to skin, blended clean. Our most popular cut.",
+      duration:    40,
+      price:       40,
+      category:   "cut",
+    },
+    {
+      id:          "beard-trim",
+      name:        "Beard Trim & Shape",
+      description: "Crisp lines and defined edges shaped to your face.",
+      duration:    20,
+      price:       25,
+      category:   "beard",
+    },
+    {
+      id:          "hot-towel-shave",
+      name:        "Hot Towel Shave",
+      description: "Full straight razor shave with hot towel prep.",
+      duration:    40,
+      price:       40,
+      category:   "shave",
+    },
+    {
+      id:          "kids-cut",
+      name:        "Kids Cut",
+      description: "Patient and friendly. For boys 12 and under.",
+      duration:    25,
+      price:       25,
+      category:   "cut",
+    },
+    {
+      id:          "combo",
+      name:        "Cut + Beard Combo",
+      description: "Full haircut and beard service — best value in the shop.",
+      duration:    55,
+      price:       55,
+      category:   "combo",
     },
   ],
 
