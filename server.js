@@ -55,31 +55,31 @@ async function sendSMS(to, body) {
 async function sendOwnerRequest(booking) {
   if (!OWNER_PHONE) return;
   await sendSMS(OWNER_PHONE,
-    `New booking request!\n${booking.customerName} wants ${booking.serviceName}\n${booking.date} at ${formatTime(booking.time)}\nPhone: ${booking.phone}\n\nReply YES to confirm or NO to decline.`
+    `New booking — ClearVision!\n${booking.customerName} booked ${booking.serviceName}\n${booking.date} at ${formatTime(booking.time)}\nPhone: ${booking.phone}\n\nReply YES to confirm or NO to decline.`
   );
 }
 
 async function sendCustomerConfirmation(booking) {
   await sendSMS(booking.phone,
-    `Hi ${booking.customerName}! Your booking is confirmed at ${BUSINESS_NAME}. ${booking.serviceName} on ${booking.date} at ${formatTime(booking.time)}. See you then!`
+    `Hey ${booking.customerName}! Your ${booking.serviceName} is confirmed with ClearVision Auto. We'll come to you on ${booking.date} at ${formatTime(booking.time)}. See you then! — ClearVision`
   );
 }
 
 async function sendCustomerDenied(booking) {
   await sendSMS(booking.phone,
-    `Hi ${booking.customerName}, unfortunately that time is no longer available at ${BUSINESS_NAME}. Please choose another time: ${BOOKING_PAGE_URL}/book`
+    `Hey ${booking.customerName}, unfortunately that time slot is taken. Pick another time here and we'll get you booked: ${BOOKING_PAGE_URL}/book — ClearVision Auto`
   );
 }
 
 async function sendCustomerOffer(booking, suggestedDate, suggestedTime) {
   await sendSMS(booking.phone,
-    `Hi ${booking.customerName}! That time isn't available. Would ${suggestedDate} at ${formatTime(suggestedTime)} work instead?\n\nReply YES to confirm or NO to decline.`
+    `Hey ${booking.customerName}! That time won't work but we can do ${suggestedDate} at ${formatTime(suggestedTime)} instead. Does that work?\n\nReply YES to confirm or NO to decline. — ClearVision Auto`
   );
 }
 
 async function sendReviewSMS(phone, customerName, token) {
   await sendSMS(phone,
-    `Hi ${customerName}! How was your experience at ${BUSINESS_NAME}? Takes 20 seconds: ${getSurveyUrl(token)}`
+    `Hey ${customerName}! Hope those headlights are looking crystal clear 💡 Would mean a lot if you took 20 seconds to let us know how we did: ${getSurveyUrl(token)} — ClearVision Auto`
   );
 }
 
