@@ -13,7 +13,7 @@ module.exports = {
     default:     { startHour: 8, endHour: 18 },  // Mon–Fri
     friday:      { startHour: 8, endHour: 18 },  // Friday
     weekend:     { startHour: 9, endHour: 17 },  // Saturday
-    closedDays:  [0],                             // Closed Sundays
+    closedDays:  [],                              // No closed days
   },
 
   // --- Services ---
