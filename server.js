@@ -392,7 +392,7 @@ app.post("/api/review", async (req, res) => {
   res.json({ success: true, redirectToGoogle: isHigh, googleReviewLink: isHigh ? GOOGLE_REVIEW : null });
 });
 
-app.post("/api/reset", (req, res) => {
+app.get("/api/reset", (req, res) => {
   if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
   db.set("bookings", []).set("feedback", []).set("walkins", []).set("pageviews", []).set("blocked", []).write();
   res.json({ success: true, message: "Database cleared" });
