@@ -65,7 +65,7 @@ async function sendOwnerNotification(booking) {
 async function sendCustomerConfirmation(booking) {
   const firstName = booking.customerName.split(" ")[0];
   await sendSMS(booking.phone,
-    `Hey ${firstName}! Your ${booking.serviceName} is confirmed with ClearVision Auto. We'll come to you on ${booking.date} at ${formatTime(booking.time)}. See you then! — ClearVision`
+    `Hey ${firstName}! Your ${booking.serviceName} is confirmed with ${BUSINESS_NAME}. We'll see you on ${booking.date} at ${formatTime(booking.time)}. — ${BUSINESS_NAME}`
   );
 }
 
@@ -230,8 +230,8 @@ app.post("/api/bookings", async (req, res) => {
   db.get("bookings").push(booking).write();
   console.log(`✓ Booking: ${booking.id} — ${customerName} for ${booking.serviceName} on ${date} at ${time}`);
 
-  try { await sendCustomerConfirmation(booking); console.log(`✓ Customer SMS → ${booking.phone}`); } catch (err) { console.error(`✗ Customer SMS:`, err.message); }
-  try { await sendOwnerNotification(booking); console.log(`✓ Owner SMS → ${OWNER_PHONE}`); }       catch (err) { console.error(`✗ Owner SMS:`, err.message); }
+  try { await sendCustomerConfirmation(booking); } catch (err) { console.error(`✗ Customer SMS:`, err.message); }
+  try { await sendOwnerNotification(booking); }    catch (err) { console.error(`✗ Owner SMS:`, err.message); }
 
   res.json({
     success: true, bookingId: booking.id,
