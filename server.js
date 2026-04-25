@@ -233,8 +233,8 @@ app.post("/api/bookings", async (req, res) => {
   db.get("bookings").push(booking).write();
   console.log(`✓ Booking: ${booking.id} — ${customerName} for ${booking.serviceName} on ${date} at ${time}`);
 
-  try { await sendCustomerConfirmation(booking); } catch (err) { console.error(`✗ Customer SMS:`, err.message); }
-  try { await sendOwnerNotification(booking); }    catch (err) { console.error(`✗ Owner SMS:`, err.message); }
+  try { await sendCustomerConfirmation(booking); console.log(`✓ Customer SMS → ${booking.phone}`); } catch (err) { console.error(`✗ Customer SMS:`, err.message); }
+  try { await sendOwnerNotification(booking); console.log(`✓ Owner SMS → ${OWNER_PHONE}`); }       catch (err) { console.error(`✗ Owner SMS:`, err.message); }
 
   res.json({
     success: true, bookingId: booking.id,
@@ -390,6 +390,12 @@ app.post("/api/review", async (req, res) => {
   }
 
   res.json({ success: true, redirectToGoogle: isHigh, googleReviewLink: isHigh ? GOOGLE_REVIEW : null });
+});
+
+app.post("/api/reset", (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  db.set("bookings", []).set("feedback", []).set("walkins", []).set("pageviews", []).set("blocked", []).write();
+  res.json({ success: true, message: "Database cleared" });
 });
 
 app.get("/api/feedback", (req, res) => {
