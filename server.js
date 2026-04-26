@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const adapter = new FileSync("db.json");
 const db = low(adapter);
-db.defaults({ bookings: [], feedback: [], walkins: [], pageviews: [], blocked: [] }).write();
+db.defaults({ bookings: [], feedback: [], walkins: [], pageviews: [], blocked: [], expenses: [] }).write();
 
 const {
   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER,
@@ -150,14 +150,26 @@ app.get("/api/stats", (req, res) => {
   const homeViews  = pageviews.filter(v => v.page === "home").length;
   const convRate   = homeViews ? ((confirmed.length / homeViews) * 100).toFixed(1) : "0.0";
 
-  const revenue = confirmed.reduce((s, b) => s + b.servicePrice, 0);
+  const localNowDate = new Date().toLocaleDateString("en-CA", { timeZone: TIMEZONE });
+  const localNowTime = new Date().toLocaleTimeString("en-US", { timeZone: TIMEZONE, hour12: false, hour: "2-digit", minute: "2-digit" });
+  const nowLocal = new Date(`${localNowDate}T${localNowTime}:00`);
+
+  const earnedRevenue   = confirmed.filter(b => b.source === "manual" || new Date(`${b.date}T${b.time}:00`) <= nowLocal).reduce((s, b) => s + b.servicePrice, 0);
+  const upcomingRevenue = confirmed.filter(b => b.source !== "manual" && new Date(`${b.date}T${b.time}:00`) > nowLocal).reduce((s, b) => s + b.servicePrice, 0);
+
+  const expensesData  = db.get("expenses").value();
+  const totalExpenses = expensesData.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const netProfit     = earnedRevenue - totalExpenses;
+
   const avgRating = feedback.length
     ? (feedback.reduce((s, f) => s + f.rating, 0) / feedback.length).toFixed(1) : null;
 
   res.json({
     totalViews, homeViews, convRate,
     totalBookings: confirmed.length,
-    totalRevenue: revenue,
+    totalRevenue: earnedRevenue,
+    earnedRevenue, upcomingRevenue,
+    totalExpenses, netProfit,
     avgRating,
     reviewRate: confirmed.length ? Math.round((feedback.length / confirmed.length) * 100) : 0,
     totalWalkins: walkins.length,
@@ -393,6 +405,59 @@ app.post("/api/winback", async (req, res) => {
     );
     res.json({ success: true });
   } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get("/api/returning", (req, res) => {
+  const { phone, email, name } = req.query;
+  if (!phone && !email && !name) return res.json({ found: false });
+  const allBookings = db.get("bookings").value();
+  let matches = [];
+  if (phone) {
+    const clean = phone.replace(/\D/g, "");
+    if (clean.length < 10) return res.json({ found: false });
+    matches = allBookings.filter(b => b.phone && b.phone.replace(/\D/g,"") === clean);
+  } else if (email) {
+    const lc = email.toLowerCase().trim();
+    if (!lc.includes("@")) return res.json({ found: false });
+    matches = allBookings.filter(b => b.email && b.email.toLowerCase().trim() === lc);
+  } else if (name) {
+    const nm = name.trim().toLowerCase();
+    if (nm.length < 3) return res.json({ found: false });
+    matches = allBookings.filter(b => b.customerName && b.customerName.toLowerCase() === nm);
+  }
+  if (!matches.length) return res.json({ found: false });
+  const sorted = matches.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt > a.createdAt ? 1 : -1));
+  if (sorted[0].status === "noshow") return res.json({ found: false });
+  const confirmed = matches.find(b => b.status === "confirmed") || sorted[0];
+  return res.json({ found: true, customerName: confirmed.customerName, email: confirmed.email || null });
+});
+
+// ── Expenses ──────────────────────────────────────────────────
+
+app.get("/api/expenses", (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  res.json(db.get("expenses").value().slice().reverse());
+});
+
+app.post("/api/expenses", (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  const { description, category, amount, date } = req.body;
+  if (!description || !amount) return res.status(400).json({ error: "description and amount required" });
+  const expense = {
+    id: `EX-${Date.now()}`,
+    description, category: category || "Other",
+    amount: Number(amount) || 0,
+    date: date || new Date().toISOString().split("T")[0],
+    createdAt: new Date().toISOString(),
+  };
+  db.get("expenses").push(expense).write();
+  res.json({ success: true, expense });
+});
+
+app.delete("/api/expenses/:id", (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  db.get("expenses").remove({ id: req.params.id }).write();
+  res.json({ success: true });
 });
 
 app.post("/api/review", async (req, res) => {
