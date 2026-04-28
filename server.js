@@ -445,22 +445,30 @@ app.post("/api/winback", async (req, res) => {
 
 app.get("/api/returning", (req, res) => {
   const { phone, email, name } = req.query;
-  if (!phone && !email && !name) return res.json({ found: false });
+
+  // Validate each field
+  const cleanPhone = phone ? phone.replace(/\D/g, "") : null;
+  const cleanEmail = email ? email.toLowerCase().trim() : null;
+  const cleanName  = name  ? name.trim().toLowerCase()  : null;
+
+  const hasPhone = cleanPhone && cleanPhone.length >= 10;
+  const hasEmail = cleanEmail && cleanEmail.includes("@");
+  const hasName  = cleanName  && cleanName.length >= 2;
+
+  // Require at least 2 identifiers — name alone is not enough
+  if ([hasPhone, hasEmail, hasName].filter(Boolean).length < 2) return res.json({ found: false });
+
   const allBookings = db.get("bookings").value();
-  let matches = [];
-  if (phone) {
-    const clean = phone.replace(/\D/g, "");
-    if (clean.length < 10) return res.json({ found: false });
-    matches = allBookings.filter(b => b.phone && b.phone.replace(/\D/g,"") === clean);
-  } else if (email) {
-    const lc = email.toLowerCase().trim();
-    if (!lc.includes("@")) return res.json({ found: false });
-    matches = allBookings.filter(b => b.email && b.email.toLowerCase().trim() === lc);
-  } else if (name) {
-    const nm = name.trim().toLowerCase();
-    if (nm.length < 3) return res.json({ found: false });
-    matches = allBookings.filter(b => b.customerName && b.customerName.toLowerCase() === nm);
-  }
+
+  // A booking matches if at least 2 of the provided fields agree
+  const matches = allBookings.filter(b => {
+    let hits = 0;
+    if (hasPhone && b.phone && b.phone.replace(/\D/g,"") === cleanPhone) hits++;
+    if (hasEmail && b.email && b.email.toLowerCase().trim() === cleanEmail) hits++;
+    if (hasName  && b.customerName && b.customerName.trim().toLowerCase() === cleanName) hits++;
+    return hits >= 2;
+  });
+
   if (!matches.length) return res.json({ found: false });
   const sorted = matches.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt > a.createdAt ? 1 : -1));
   if (sorted[0].status === "noshow") return res.json({ found: false });
