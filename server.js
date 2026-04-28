@@ -154,7 +154,7 @@ app.get("/api/stats", (req, res) => {
   const localNowTime = new Date().toLocaleTimeString("en-US", { timeZone: TIMEZONE, hour12: false, hour: "2-digit", minute: "2-digit" });
   const nowLocal = new Date(`${localNowDate}T${localNowTime}:00`);
 
-  const earnedRevenue   = confirmed.filter(b => b.source === "manual" || new Date(`${b.date}T${b.time}:00`) <= nowLocal).reduce((s, b) => s + b.servicePrice, 0);
+  const earnedRevenue   = confirmed.filter(b => b.source === "manual" || new Date(`${b.date}T${b.time}:00`) <= nowLocal).reduce((s, b) => s + b.servicePrice + (b.tipAmount || 0), 0);
   const upcomingRevenue = confirmed.filter(b => b.source !== "manual" && new Date(`${b.date}T${b.time}:00`) > nowLocal).reduce((s, b) => s + b.servicePrice, 0);
 
   const expensesData  = db.get("expenses").value();
@@ -394,6 +394,42 @@ app.post("/api/bookings/:id/noshow", (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/bookings/:id/tip", (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  const booking = db.get("bookings").find({ id: req.params.id }).value();
+  if (!booking) return res.status(404).json({ error: "Not found" });
+  const amount = Number(req.body.amount);
+  if (!amount || amount <= 0) return res.status(400).json({ error: "Invalid tip amount" });
+  db.get("bookings").find({ id: req.params.id }).assign({ tipAmount: (booking.tipAmount || 0) + amount }).write();
+  res.json({ success: true, tipAmount: (booking.tipAmount || 0) + amount });
+});
+
+app.post("/api/send-review", async (req, res) => {
+  if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+  const { phone, customerName } = req.body;
+  if (!phone || !customerName) return res.status(400).json({ error: "phone and customerName required" });
+  // Find the latest confirmed booking for this phone to reuse its review token
+  const clean = phone.replace(/\D/g, "");
+  const allBookings = db.get("bookings").value();
+  const matches = allBookings
+    .filter(b => b.phone && b.phone.replace(/\D/g,"") === clean && b.status === "confirmed")
+    .sort((a, b) => b.date.localeCompare(a.date));
+  let token;
+  if (matches.length) {
+    token = matches[0].reviewToken;
+    if (!token) {
+      token = generateToken();
+      db.get("bookings").find({ id: matches[0].id }).assign({ reviewToken: token }).write();
+    }
+  } else {
+    token = generateToken();
+  }
+  try {
+    await sendReviewSMS(phone, customerName, token);
+    res.json({ success: true });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post("/api/winback", async (req, res) => {
   if (req.query.password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
   const { phone, customerName } = req.body;
@@ -509,7 +545,7 @@ app.get("/api/analytics", (req, res) => {
   const feedback = db.get("feedback").value();
   const walkins  = db.get("walkins").value();
   const confirmed = bookings.filter(b => b.status === "confirmed");
-  const revenue = confirmed.reduce((sum, b) => sum + b.servicePrice, 0);
+  const revenue = confirmed.reduce((sum, b) => sum + b.servicePrice + (b.tipAmount || 0), 0);
   const byService = {};
   confirmed.forEach(b => { byService[b.serviceName] = (byService[b.serviceName] || 0) + 1; });
   const last14 = {};
