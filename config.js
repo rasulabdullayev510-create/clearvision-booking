@@ -23,7 +23,7 @@ module.exports = {
       name:        "Standard Headlight Restoration",
       description: "Yellowing and fogginess removed. Perfect for vehicles with moderately hazy and yellow headlights.",
       duration:    90,
-      price:       60,
+      price:       70,
       category:   "restoration",
     },
     {
@@ -31,7 +31,7 @@ module.exports = {
       name:        "Major Headlight Restoration",
       description: "Heavy oxidation, deep fogging, and UV damage fully corrected. Like new results.",
       duration:    90,
-      price:       70,
+      price:       80,
       category:   "restoration",
     },
     {
@@ -39,7 +39,7 @@ module.exports = {
       name:        "Light Sand Restoration",
       description: "Surface-level scratches and cloudiness sanded and polished out for a clear finish. Perfect for cars beginning to show wear.",
       duration:    90,
-      price:       50,
+      price:       60,
       category:   "restoration",
     },
   ],
