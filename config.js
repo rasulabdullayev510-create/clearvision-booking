@@ -10,9 +10,9 @@ module.exports = {
 
   // --- Operating hours ---
   hours: {
-    default:     { startHour: 8, endHour: 18 },  // Mon–Fri
-    friday:      { startHour: 8, endHour: 18 },  // Friday
-    weekend:     { startHour: 9, endHour: 17 },  // Saturday
+    default:     { startHour: 11, endHour: 19 },  // Mon–Fri
+    friday:      { startHour: 11, endHour: 19 },  // Friday
+    weekend:     { startHour: 11, endHour: 19 },  // Saturday
     closedDays:  [],                              // No closed days
   },
 
@@ -20,26 +20,26 @@ module.exports = {
   services: [
     {
       id:          "minor-restoration",
-      name:        "Minor Headlight Restoration",
-      description: "Light yellowing and haze removed. Perfect for newer vehicles starting to show wear.",
-      duration:    45,
-      price:       90,
+      name:        "Standard Headlight Restoration",
+      description: "Yellowing and fogginess removed. Perfect for vehicles with moderately hazy and yellow headlights.",
+      duration:    90,
+      price:       60,
       category:   "restoration",
     },
     {
       id:          "major-restoration",
       name:        "Major Headlight Restoration",
       description: "Heavy oxidation, deep fogging, and UV damage fully corrected. Like new results.",
-      duration:    60,
-      price:       110,
+      duration:    90,
+      price:       70,
       category:   "restoration",
     },
     {
       id:          "light-sand",
       name:        "Light Sand Restoration",
-      description: "Surface-level scratches and cloudiness sanded and polished out for a clear finish.",
-      duration:    45,
-      price:       70,
+      description: "Surface-level scratches and cloudiness sanded and polished out for a clear finish. Perfect for cars beginning to show wear.",
+      duration:    90,
+      price:       50,
       category:   "restoration",
     },
   ],
